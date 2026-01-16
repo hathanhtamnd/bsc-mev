@@ -2,6 +2,8 @@ package mev
 
 import (
 	"math/big"
+	"sync"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -13,8 +15,11 @@ var (
 		common.HexToAddress("0x5c952063c7fc8610FFDB798152D69F0B9550762b"): {},
 	}
 
-	// 0.05 BNB = 50,000,000,000,000,000 wei
 	minValueWei = new(big.Int)
+
+	seenTxs sync.Map
+
+	txTTL = int64(60)
 )
 
 func init() {
@@ -32,5 +37,19 @@ func PassFilter(tx *types.Transaction) bool {
 	if tx.Value().Cmp(minValueWei) <= 0 {
 		return false
 	}
+
+	now := time.Now().Unix()
+	hash := tx.Hash()
+
+	if v, ok := seenTxs.Load(hash); ok {
+		ts := v.(int64)
+		if now-ts < txTTL {
+			return false
+		}
+		seenTxs.Store(hash, now)
+		return true
+	}
+
+	seenTxs.Store(hash, now)
 	return true
 }
