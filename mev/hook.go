@@ -2,7 +2,7 @@ package mev
 
 import (
 	"encoding/hex"
-	"fmt"
+	"encoding/json"
 	"net"
 	"sync"
 	"time"
@@ -22,29 +22,27 @@ func initTCP() {
 			for {
 				c, err := net.Dial("tcp", "127.0.0.1:8999")
 				if err != nil {
-					fmt.Println("[MEV] dial 8999 failed, retry in 1s:", err)
-					time.Sleep(1 * time.Second)
+					time.Sleep(time.Second)
 					continue
 				}
 				connMu.Lock()
 				conn = c
 				connMu.Unlock()
-				fmt.Println("[MEV] connected to 127.0.0.1:8999")
 				return
 			}
 		}()
 	})
 }
 
-func writeLine(s string) {
+func writeJSON(b []byte) {
 	connMu.Lock()
 	defer connMu.Unlock()
+
 	if conn == nil {
 		return
 	}
-	_, err := conn.Write([]byte(s))
-	if err != nil {
-		fmt.Println("[MEV] write failed:", err)
+
+	if _, err := conn.Write(b); err != nil {
 		_ = conn.Close()
 		conn = nil
 		connOnce = sync.Once{}
@@ -60,26 +58,46 @@ func OnRawTxFromPeer(
 		return
 	}
 
-	initTCP()
-
 	if !PassFilter(tx) {
 		return
 	}
 
-	hash := tx.Hash()
+	initTCP()
 
 	raw, err := tx.MarshalBinary()
 	if err != nil {
 		return
 	}
 
-	line := fmt.Sprintf(
-		"%s hash=%s rawTx=0x%s peer=%s\n",
-		ts.Format(time.RFC3339Nano),
-		hash.Hex(),
-		hex.EncodeToString(raw),
-		peerID,
-	)
+	var from string
+	if sender, err := types.Sender(
+		types.LatestSignerForChainID(tx.ChainId()),
+		tx,
+	); err == nil {
+		from = sender.Hex()
+	}
 
-	writeLine(line)
+	var to string
+	if tx.To() != nil {
+		to = tx.To().Hex()
+	}
+
+	ev := TxEvent{
+		Hash:   tx.Hash().Hex(),
+		From:   from,
+		To:     to,
+		Value:  tx.Value().String(),
+		Input:  "0x" + hex.EncodeToString(tx.Data()),
+		RawTx:  "0x" + hex.EncodeToString(raw),
+		Peer:   peerID,
+		TsNano: ts.UnixNano(),
+	}
+
+	b, err := json.Marshal(&ev)
+	if err != nil {
+		return
+	}
+
+	b = append(b, '\n')
+	writeJSON(b)
 }
