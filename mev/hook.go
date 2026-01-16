@@ -20,7 +20,7 @@ func initTCP() {
 	connOnce.Do(func() {
 		go func() {
 			for {
-				c, err := net.Dial("tcp", "127.0.0.1:8999")
+				c, err := net.Dial("tcp", "0.0.0.0:8999")
 				if err != nil {
 					time.Sleep(time.Second)
 					continue
