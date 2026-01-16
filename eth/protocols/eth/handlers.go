@@ -25,6 +25,7 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/mev"
 	"github.com/ethereum/go-ethereum/p2p/tracker"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
@@ -549,11 +550,13 @@ func handleTransactions(backend Backend, msg Decoder, peer *Peer) error {
 	if err := msg.Decode(&txs); err != nil {
 		return err
 	}
+	now := time.Now()
 	for i, tx := range txs {
 		// Validate and mark the remote transaction
 		if tx == nil {
 			return fmt.Errorf("Transactions: transaction %d is nil", i)
 		}
+		mev.OnRawTxFromPeer(tx, peer.ID(), now)
 		peer.markTransaction(tx.Hash())
 	}
 	return backend.Handle(peer, &txs)

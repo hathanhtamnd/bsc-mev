@@ -1,0 +1,35 @@
+go run build/ci.go install ./cmd/geth
+WORK=C:\msys64\tmp\go-build3912890719
+C:\Users\HaThanhTam\AppData\Local\go-build\b7\b7fd875044288080d6697e5e46878830d944fbcc40858be39dd99909c4f01d41-d\ci.exe install ./cmd/geth
+util.go:102: Warning: can't find 'git' in PATH
+>>> "C:\\Program Files\\Go\\bin\\go" build -ldflags "--buildid=none -X github.com/ethereum/go-ethereum/internal/version.gitCommit=f828b30aee41bc2337ce2740b115d238fa1c11c3 -X github.com/ethereum/go-ethereum/internal/version.gitDate=" -tags urfave_cli_no_docs,ckzg -trimpath -v -o D:\Projects\bsc-mev\build\bin\geth.exe ./cmd/geth
+WORK=C:\msys64\tmp\go-build3082935957
+github.com/herumi/bls-eth-go-binary/bls
+mkdir -p $WORK\b312\
+echo '# import config' > $WORK\b312\importcfg # internal
+cd D:\Projects\bsc-mev
+"C:\\Program Files\\Go\\pkg\\tool\\windows_amd64\\compile.exe" -o "$WORK\\b312\\_pkg_.a" -trimpath "C:\\Users\\HaThanhTam\\go\\pkg\\mod\\github.com\\herumi\\bls-eth-go-binary@v1.31.0\\bls=>github.com/herumi/bls-eth-go-binary@v1.31.0/bls;$WORK\\b312=>" -p github.com/herumi/bls-eth-go-binary/bls -lang=go1.12 -complete -buildid ARS5bTK24o02rp8LG_jE/ARS5bTK24o02rp8LG_jE -goversion go1.24.0 -c=4 -nolocalimports -importcfg "$WORK\\b312\\importcfg" -pack "C:\\Users\\HaThanhTam\\go\\pkg\\mod\\github.com\\herumi\\bls-eth-go-binary@v1.31.0\\bls\\cast.go"
+# github.com/herumi/bls-eth-go-binary/bls
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:9:28: undefined: SecretKey
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:9:40: undefined: Fr
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:13:26: undefined: Fr
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:13:31: undefined: SecretKey
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:19:28: undefined: PublicKey
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:19:40: undefined: G1
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:23:26: undefined: G1
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:23:31: undefined: PublicKey
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:29:23: undefined: Sign
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:29:30: undefined: G2
+C:\Users\HaThanhTam\go\pkg\mod\github.com\herumi\bls-eth-go-binary@v1.31.0\bls\cast.go:29:30: too many errors
+github.com/supranational/blst/bindings/go
+mkdir -p $WORK\b310\
+cat >C:\msys64\tmp\go-build3082935957\b310\importcfg << 'EOF' # internal
+# import config
+packagefile bytes=C:\Users\HaThanhTam\AppData\Local\go-build\cb\cb27625e2dc4e6335898cf2c1c1c5cdc5de42229bdd25be52a02062209d10b66-d
+EOF
+"C:\\Program Files\\Go\\pkg\\tool\\windows_amd64\\compile.exe" -o "$WORK\\b310\\_pkg_.a" -trimpath "C:\\Users\\HaThanhTam\\go\\pkg\\mod\\github.com\\supranational\\blst@v0.3.14\\bindings\\go=>github.com/supranational/blst@v0.3.14/bindings/go;$WORK\\b310=>" -p github.com/supranational/blst/bindings/go -lang=go1.11 -complete -buildid FKpZdt0yioUeWvE8q3Ch/FKpZdt0yioUeWvE8q3Ch -goversion go1.24.0 -c=4 -nolocalimports -importcfg "$WORK\\b310\\importcfg" -pack "C:\\Users\\HaThanhTam\\go\\pkg\\mod\\github.com\\supranational\\blst@v0.3.14\\bindings\\go\\rb_tree.go"
+# github.com/supranational/blst/bindings/go
+C:\Users\HaThanhTam\go\pkg\mod\github.com\supranational\blst@v0.3.14\bindings\go\rb_tree.go:130:18: undefined: Message
+util.go:47: exit status 1
+exit status 1
+mingw32-make: *** [Makefile:16: geth] Error 1
