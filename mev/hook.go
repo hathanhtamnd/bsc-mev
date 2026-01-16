@@ -70,11 +70,21 @@ func OnRawTxFromPeer(
 	}
 
 	var from string
-	if sender, err := types.Sender(
-		types.LatestSignerForChainID(tx.ChainId()),
-		tx,
-	); err == nil {
-		from = sender.Hex()
+
+	if chainID := tx.ChainId(); chainID != nil && chainID.Sign() > 0 {
+		if sender, err := types.Sender(
+			types.LatestSignerForChainID(chainID),
+			tx,
+		); err == nil {
+			from = sender.Hex()
+		}
+	} else {
+		if sender, err := types.Sender(
+			types.HomesteadSigner{},
+			tx,
+		); err == nil {
+			from = sender.Hex()
+		}
 	}
 
 	var to string
