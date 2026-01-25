@@ -8,15 +8,12 @@ import (
 )
 
 var (
-	// tx dedup within TTL
 	seenSwapTx sync.Map
 	swapTxTTL  = int64(60)
 
-	// STEP-1: selector-based coarse filter
-	// swap + multicall + universal router ONLY
 	filterSelectors = map[[4]byte]struct{}{
 		// -----------------------------
-		// UniswapV2 / PancakeV2 routers
+		// Uniswap / Pancake V2 routers
 		// -----------------------------
 		{0x38, 0xed, 0x17, 0x39}: {},
 		{0x7f, 0xf3, 0x6a, 0xb5}: {},
@@ -25,8 +22,13 @@ var (
 		{0xfb, 0x3b, 0xdb, 0x41}: {},
 		{0x4a, 0x25, 0xd9, 0x4a}: {},
 
+		// fee-on-transfer
+		{0x5c, 0x11, 0xd7, 0x95}: {},
+		{0xb6, 0xf9, 0xde, 0x95}: {},
+		{0x79, 0x1a, 0xc9, 0x47}: {},
+
 		// -----------------------------
-		// UniswapV3 / PancakeV3 routers
+		// Uniswap / Pancake V3 routers
 		// -----------------------------
 		{0x04, 0xe4, 0x5a, 0xaf}: {},
 		{0xb8, 0x58, 0x18, 0x3f}: {},
@@ -34,30 +36,27 @@ var (
 		{0x09, 0xb8, 0x13, 0x46}: {},
 
 		// -----------------------------
-		// Direct pool calls
+		// Direct pool swap
 		// -----------------------------
-		{0x02, 0x2c, 0x0d, 0x9f}: {}, // V2 pair swap
-		{0x12, 0x8a, 0xcb, 0x08}: {}, // V3 pool swap
-
-		// Pancake / Uniswap fee-on-transfer swaps
-		{0x5c, 0x11, 0xd7, 0x95}: {}, // swapExactTokensForTokensSupportingFeeOnTransferTokens
-		{0xb6, 0xf9, 0xde, 0x95}: {}, // swapExactETHForTokensSupportingFeeOnTransferTokens
-		{0x79, 0x1a, 0xc9, 0x47}: {}, // swapExactTokensForETHSupportingFeeOnTransferTokens
+		{0x02, 0x2c, 0x0d, 0x9f}: {},
+		{0x12, 0x8a, 0xcb, 0x08}: {},
 
 		// -----------------------------
-		// Multicall wrappers
+		// Multicall
 		// -----------------------------
-		{0xac, 0x96, 0x50, 0xd8}: {}, // multicall(bytes[])
-		{0x5a, 0xe4, 0x01, 0xdc}: {}, // multicall(uint256,bytes[])
+		{0xac, 0x96, 0x50, 0xd8}: {},
+		{0x5a, 0xe4, 0x01, 0xdc}: {},
 
 		// -----------------------------
-		// Universal Router
+		// Universal / Aggregator execute
 		// -----------------------------
 		{0x35, 0x93, 0x56, 0x4c}: {}, // execute(bytes,bytes[])
+		{0x7c, 0x02, 0x52, 0x00}: {}, // execute(bytes)
+		{0x09, 0xc5, 0xea, 0xbe}: {},
+		{0x1c, 0xff, 0x79, 0xcd}: {},
 	}
 )
 
-// PassFilterSwapDefi - STEP 1 coarse filter
 func PassFilterSwapDefi(tx *types.Transaction) bool {
 	data := tx.Data()
 	if len(data) < 4 {
@@ -79,7 +78,6 @@ func PassFilterSwapDefi(tx *types.Transaction) bool {
 			return false
 		}
 	}
-
 	seenSwapTx.Store(h, now)
 	return true
 }

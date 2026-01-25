@@ -16,9 +16,9 @@ type TxEvent struct {
 }
 
 type SwapExtract struct {
-	SwapType string
-	TokenIn  string
-	TokenOut string
-	AmountIn *big.Int
-	PoolHint string
+	SwapType string   `json:"swapType"`
+	TokenIn  string   `json:"tokenIn,omitempty"`
+	TokenOut string   `json:"tokenOut,omitempty"`
+	AmountIn *big.Int `json:"amountIn,omitempty"`
+	PoolHint string   `json:"poolHint,omitempty"`
 }

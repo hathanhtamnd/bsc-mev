@@ -1,18 +1,10 @@
 package mev
 
-import (
-	"github.com/ethereum/go-ethereum/core/types"
-)
+import "github.com/ethereum/go-ethereum/core/types"
 
 func HasRealSwapAfterDecode(tx *types.Transaction) bool {
-	data := tx.Data()
-	if len(data) < 4 {
-		return false
-	}
-
-	var sel [4]byte
-	copy(sel[:], data[:4])
-
+	// GETH không decode sâu
+	// STEP-1 đã đủ
 	return true
 }
 
@@ -25,10 +17,9 @@ func ExtractSwapInfo(tx *types.Transaction) *SwapExtract {
 	var sel [4]byte
 	copy(sel[:], data[:4])
 
-	// Router / pool direct → extract thô
 	switch sel {
 
-	// V2 router (ALL variants)
+	// V2 router
 	case
 		[4]byte{0x38, 0xed, 0x17, 0x39},
 		[4]byte{0x7f, 0xf3, 0x6a, 0xb5},
@@ -38,7 +29,7 @@ func ExtractSwapInfo(tx *types.Transaction) *SwapExtract {
 		[4]byte{0x79, 0x1a, 0xc9, 0x47}:
 		return &SwapExtract{SwapType: "v2_router"}
 
-	// V3 router (ALL)
+	// V3 router
 	case
 		[4]byte{0x04, 0xe4, 0x5a, 0xaf},
 		[4]byte{0xb8, 0x58, 0x18, 0x3f},
@@ -50,12 +41,14 @@ func ExtractSwapInfo(tx *types.Transaction) *SwapExtract {
 	case [4]byte{0x02, 0x2c, 0x0d, 0x9f}:
 		return &SwapExtract{SwapType: "v2_pool"}
 
-	// Multicall / execute / universal router
+	// Multicall / execute / universal
 	case
 		[4]byte{0xac, 0x96, 0x50, 0xd8},
 		[4]byte{0x5a, 0xe4, 0x01, 0xdc},
 		[4]byte{0x35, 0x93, 0x56, 0x4c},
-		[4]byte{0x7c, 0x02, 0x52, 0x00}:
+		[4]byte{0x7c, 0x02, 0x52, 0x00},
+		[4]byte{0x09, 0xc5, 0xea, 0xbe},
+		[4]byte{0x1c, 0xff, 0x79, 0xcd}:
 		return &SwapExtract{SwapType: "multicall"}
 	}
 
