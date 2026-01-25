@@ -34,6 +34,11 @@ var (
 		// direct pools
 		{0x02, 0x2c, 0x0d, 0x9f}: {}, // V2 pair
 		{0x12, 0x8a, 0xcb, 0x08}: {}, // V3 pool
+
+		// Pancake / Uniswap fee-on-transfer swaps
+		{0x5c, 0x11, 0xd7, 0x95}: {}, // swapExactTokensForTokensSupportingFeeOnTransferTokens
+		{0xb6, 0xf9, 0xde, 0x95}: {}, // swapExactETHForTokensSupportingFeeOnTransferTokens
+		{0x79, 0x1a, 0xc9, 0x47}: {}, // swapExactTokensForETHSupportingFeeOnTransferTokens
 	}
 
 	multicallSelectors = map[[4]byte]struct{}{
@@ -45,7 +50,6 @@ var (
 )
 
 func init() {
-	log.Info("MEV: init hook_defi")
 	go func() {
 		for {
 			c, err := net.Dial("tcp", "0.0.0.0:8998")
@@ -72,8 +76,6 @@ func writeToTCP(b []byte) {
 		return
 	}
 
-	log.Debug("MEV: write TCP", "bytes", len(b))
-
 	if _, err := connDefi.Write(b); err != nil {
 		log.Warn("MEV: TCP write failed", "err", err)
 		_ = connDefi.Close()
@@ -82,22 +84,18 @@ func writeToTCP(b []byte) {
 }
 
 func OnRawTxFromPeer(tx *types.Transaction, peerID string, ts time.Time) {
-	log.Debug("MEV: OnRawTxFromPeer", "hash", tx.Hash())
 	if !PassFilterSwapDefi(tx) {
 		return
 	}
-	log.Debug("MEV: pass step1", "hash", tx.Hash())
 
 	if !HasRealSwapAfterDecode(tx) {
 		return
 	}
-	log.Debug("MEV: pass step2", "hash", tx.Hash())
 
 	swap := ExtractSwapInfo(tx)
 	if swap == nil {
 		return
 	}
-	log.Debug("MEV: pass step3", "hash", tx.Hash(), "type", swap.SwapType)
 
 	raw, err := tx.MarshalBinary()
 	if err != nil {

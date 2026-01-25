@@ -26,35 +26,56 @@ func readUint256Big(b []byte, offset int) *big.Int {
 }
 
 func hasSwapInMulticall(data []byte) bool {
+	if len(data) < 4+32 {
+		return false
+	}
+
 	var sel [4]byte
 	copy(sel[:], data[:4])
 
 	var offset int
-	if sel == [4]byte{0xac, 0x96, 0x50, 0xd8} {
+	switch sel {
+	case [4]byte{0xac, 0x96, 0x50, 0xd8}:
 		offset = readUint256(data, 4)
-	} else {
+
+	case [4]byte{0x5a, 0xe4, 0x01, 0xdc}:
 		offset = readUint256(data, 4+32)
+
+	default:
+		return false
 	}
 
 	base := 4 + offset
+	if base+32 > len(data) {
+		return false
+	}
+
 	n := readUint256(data, base)
 	pos := base + 32
 
 	for i := 0; i < n; i++ {
+		if pos+32 > len(data) {
+			return false
+		}
+
 		innerOffset := readUint256(data, pos)
 		pos += 32
-		start := base + innerOffset
 
-		if start+4 > len(data) {
+		bytesStart := base + innerOffset
+		if bytesStart+32+4 > len(data) {
 			continue
 		}
 
+		calldataStart := bytesStart + 32
+
 		var s [4]byte
-		copy(s[:], data[start:start+4])
+		copy(s[:], data[calldataStart:calldataStart+4])
+
 		if _, ok := innerSwapSelectors[s]; ok {
 			return true
 		}
 	}
+
 	return false
 }
 
