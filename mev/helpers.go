@@ -2,12 +2,6 @@ package mev
 
 import "github.com/ethereum/go-ethereum/core/types"
 
-func HasRealSwapAfterDecode(tx *types.Transaction) bool {
-	// GETH không decode sâu
-	// STEP-1 đã đủ
-	return true
-}
-
 func ExtractSwapInfo(tx *types.Transaction) *SwapExtract {
 	data := tx.Data()
 	if len(data) < 4 {

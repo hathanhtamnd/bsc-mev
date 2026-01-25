@@ -49,9 +49,6 @@ func OnRawTxFromPeer(tx *types.Transaction, peerID string, ts time.Time) {
 	if !PassFilterSwapDefi(tx) {
 		return
 	}
-	if !HasRealSwapAfterDecode(tx) {
-		return
-	}
 
 	swap := ExtractSwapInfo(tx)
 	if swap == nil {
