@@ -74,11 +74,6 @@ func OnRawTxFromPeer(tx *types.Transaction, peerID string, ts time.Time) {
 		return
 	}
 
-	swap := ExtractSwapInfo(tx)
-	if swap == nil {
-		return
-	}
-
 	raw, err := tx.MarshalBinary()
 	if err != nil {
 		return
@@ -105,7 +100,6 @@ func OnRawTxFromPeer(tx *types.Transaction, peerID string, ts time.Time) {
 		RawTx:  "0x" + hex.EncodeToString(raw),
 		Peer:   peerID,
 		TsNano: ts.UnixNano(),
-		Swap:   swap,
 	}
 
 	b, _ := json.Marshal(&ev)
