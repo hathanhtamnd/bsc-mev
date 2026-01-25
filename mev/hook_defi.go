@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	connMuDefi sync.Mutex
+	connMuDefi sync.RWMutex
 	connDefi   net.Conn
 )
 
@@ -23,25 +23,49 @@ func init() {
 				time.Sleep(time.Second)
 				continue
 			}
+
 			connMuDefi.Lock()
+			if connDefi != nil {
+				_ = connDefi.Close()
+			}
 			connDefi = c
 			connMuDefi.Unlock()
+
 			return
 		}
 	}()
 }
 
 func writeToTCP(b []byte) {
-	connMuDefi.Lock()
-	defer connMuDefi.Unlock()
+	connMuDefi.RLock()
+	c := connDefi
+	connMuDefi.RUnlock()
 
-	if connDefi == nil {
+	if c == nil {
 		return
 	}
 
-	if _, err := connDefi.Write(b); err != nil {
-		_ = connDefi.Close()
-		connDefi = nil
+	if _, err := c.Write(b); err != nil {
+		connMuDefi.Lock()
+		if connDefi == c {
+			_ = connDefi.Close()
+			connDefi = nil
+		}
+		connMuDefi.Unlock()
+
+		go func() {
+			for {
+				c, err := net.Dial("tcp", "0.0.0.0:8998")
+				if err != nil {
+					time.Sleep(time.Second)
+					continue
+				}
+				connMuDefi.Lock()
+				connDefi = c
+				connMuDefi.Unlock()
+				return
+			}
+		}()
 	}
 }
 
