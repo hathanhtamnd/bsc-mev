@@ -11,13 +11,17 @@ import (
 )
 
 var (
-	conn     net.Conn
-	connOnce sync.Once
-	connMu   sync.Mutex
+	connFourMeme     net.Conn
+	connOnceFourMeme sync.Once
+	connMuFourMeme   sync.Mutex
+
+	connPancakeV2     net.Conn
+	connOncePancakeV2 sync.Once
+	connMuPancakeV2   sync.Mutex
 )
 
-func initTCP() {
-	connOnce.Do(func() {
+func initTCPFourMeme() {
+	connOnceFourMeme.Do(func() {
 		go func() {
 			for {
 				c, err := net.Dial("tcp", "0.0.0.0:8999")
@@ -25,27 +29,60 @@ func initTCP() {
 					time.Sleep(time.Second)
 					continue
 				}
-				connMu.Lock()
-				conn = c
-				connMu.Unlock()
+				connMuFourMeme.Lock()
+				connFourMeme = c
+				connMuFourMeme.Unlock()
 				return
 			}
 		}()
 	})
 }
 
-func writeJSON(b []byte) {
-	connMu.Lock()
-	defer connMu.Unlock()
+func initTCPPancakeV2() {
+	connOncePancakeV2.Do(func() {
+		go func() {
+			for {
+				c, err := net.Dial("tcp", "0.0.0.0:8999")
+				if err != nil {
+					time.Sleep(time.Second)
+					continue
+				}
+				connMuPancakeV2.Lock()
+				connPancakeV2 = c
+				connMuPancakeV2.Unlock()
+				return
+			}
+		}()
+	})
+}
 
-	if conn == nil {
+func writeJSONFourMeme(b []byte) {
+	connMuFourMeme.Lock()
+	defer connMuFourMeme.Unlock()
+
+	if connFourMeme == nil {
 		return
 	}
 
-	if _, err := conn.Write(b); err != nil {
-		_ = conn.Close()
-		conn = nil
-		connOnce = sync.Once{}
+	if _, err := connFourMeme.Write(b); err != nil {
+		_ = connFourMeme.Close()
+		connFourMeme = nil
+		connOnceFourMeme = sync.Once{}
+	}
+}
+
+func writeJSONPancakeV2(b []byte) {
+	connMuPancakeV2.Lock()
+	defer connMuPancakeV2.Unlock()
+
+	if connPancakeV2 == nil {
+		return
+	}
+
+	if _, err := connPancakeV2.Write(b); err != nil {
+		_ = connPancakeV2.Close()
+		connPancakeV2 = nil
+		connOncePancakeV2 = sync.Once{}
 	}
 }
 
@@ -58,11 +95,17 @@ func OnRawTxFromPeer(
 		return
 	}
 
-	if !PassFilter(tx) {
+	var isFourMeme = false
+	var isPancakeV2 = false
+	if PassFilterFourMeme(tx) {
+		initTCPFourMeme()
+		isFourMeme = true
+	} else if PassFilterPancakeV2(tx) {
+		initTCPPancakeV2()
+		isPancakeV2 = true
+	} else {
 		return
 	}
-
-	initTCP()
 
 	raw, err := tx.MarshalBinary()
 	if err != nil {
@@ -109,5 +152,9 @@ func OnRawTxFromPeer(
 	}
 
 	b = append(b, '\n')
-	writeJSON(b)
+	if isFourMeme {
+		writeJSONFourMeme(b)
+	} else if isPancakeV2 {
+		writeJSONPancakeV2(b)
+	}
 }
