@@ -69,8 +69,16 @@ func writeToTCP(b []byte) {
 	}
 }
 
-func OnRawTxFromPeer(tx *types.Transaction, peerID string, ts time.Time) {
-	if !PassFilterSwapDefi(tx) {
+func OnRawTxFromPeer(
+	tx *types.Transaction,
+	peerID string,
+	ts time.Time,
+) {
+	if tx == nil {
+		return
+	}
+
+	if !PassFilter(tx) {
 		return
 	}
 
@@ -102,6 +110,9 @@ func OnRawTxFromPeer(tx *types.Transaction, peerID string, ts time.Time) {
 		TsNano: ts.UnixNano(),
 	}
 
-	b, _ := json.Marshal(&ev)
+	b, err := json.Marshal(&ev)
+	if err != nil {
+		return
+	}
 	writeToTCP(append(b, '\n'))
 }
