@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 var (
@@ -44,13 +45,16 @@ var (
 )
 
 func init() {
+	log.Info("MEV: init hook_defi")
 	go func() {
 		for {
 			c, err := net.Dial("tcp", "0.0.0.0:8998")
 			if err != nil {
+				log.Warn("MEV: TCP connect failed", "err", err)
 				time.Sleep(time.Second)
 				continue
 			}
+			log.Info("MEV: TCP connected")
 			connMuDefi.Lock()
 			connDefi = c
 			connMuDefi.Unlock()
@@ -64,24 +68,36 @@ func writeToTCP(b []byte) {
 	defer connMuDefi.Unlock()
 
 	if connDefi == nil {
+		log.Warn("MEV: connDefi nil")
 		return
 	}
 
+	log.Debug("MEV: write TCP", "bytes", len(b))
+
 	if _, err := connDefi.Write(b); err != nil {
+		log.Warn("MEV: TCP write failed", "err", err)
 		_ = connDefi.Close()
 		connDefi = nil
 	}
 }
 
 func OnRawTxFromPeer(tx *types.Transaction, peerID string, ts time.Time) {
+	log.Debug("MEV: OnRawTxFromPeer", "hash", tx.Hash())
 	if !PassFilterSwapDefi(tx) {
 		return
 	}
+	log.Debug("MEV: pass step1", "hash", tx.Hash())
+
+	if !HasRealSwapAfterDecode(tx) {
+		return
+	}
+	log.Debug("MEV: pass step2", "hash", tx.Hash())
 
 	swap := ExtractSwapInfo(tx)
 	if swap == nil {
 		return
 	}
+	log.Debug("MEV: pass step3", "hash", tx.Hash(), "type", swap.SwapType)
 
 	raw, err := tx.MarshalBinary()
 	if err != nil {
