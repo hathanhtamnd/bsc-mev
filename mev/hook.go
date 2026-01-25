@@ -42,7 +42,7 @@ func initTCPPancakeV2() {
 	connOncePancakeV2.Do(func() {
 		go func() {
 			for {
-				c, err := net.Dial("tcp", "0.0.0.0:8999")
+				c, err := net.Dial("tcp", "0.0.0.0:8998")
 				if err != nil {
 					time.Sleep(time.Second)
 					continue
