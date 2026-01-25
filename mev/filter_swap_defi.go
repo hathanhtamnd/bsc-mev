@@ -39,6 +39,11 @@ var (
 		{0x02, 0x2c, 0x0d, 0x9f}: {}, // V2 pair swap
 		{0x12, 0x8a, 0xcb, 0x08}: {}, // V3 pool swap
 
+		// Pancake / Uniswap fee-on-transfer swaps
+		{0x5c, 0x11, 0xd7, 0x95}: {}, // swapExactTokensForTokensSupportingFeeOnTransferTokens
+		{0xb6, 0xf9, 0xde, 0x95}: {}, // swapExactETHForTokensSupportingFeeOnTransferTokens
+		{0x79, 0x1a, 0xc9, 0x47}: {}, // swapExactTokensForETHSupportingFeeOnTransferTokens
+
 		// -----------------------------
 		// Multicall wrappers
 		// -----------------------------
