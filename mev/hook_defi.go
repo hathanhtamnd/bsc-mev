@@ -13,6 +13,9 @@ import (
 var (
 	connMuDefi sync.RWMutex
 	connDefi   net.Conn
+
+	connMuDefiFourMeme sync.RWMutex
+	connDefiFourMeme   net.Conn
 )
 
 func init() {
@@ -34,6 +37,25 @@ func init() {
 			return
 		}
 	}()
+
+	go func() {
+		for {
+			c, err := net.Dial("tcp", "0.0.0.0:8999")
+			if err != nil {
+				time.Sleep(time.Second)
+				continue
+			}
+
+			connMuDefiFourMeme.Lock()
+			if connDefiFourMeme != nil {
+				_ = connDefiFourMeme.Close()
+			}
+			connDefiFourMeme = c
+			connMuDefiFourMeme.Unlock()
+
+			return
+		}
+	}()
 }
 
 func writeToTCP(b []byte) {
@@ -45,6 +67,7 @@ func writeToTCP(b []byte) {
 		return
 	}
 
+	_ = c.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
 	if _, err := c.Write(b); err != nil {
 		connMuDefi.Lock()
 		if connDefi == c {
@@ -69,6 +92,40 @@ func writeToTCP(b []byte) {
 	}
 }
 
+func writeToTCPFourMeme(b []byte) {
+	connMuDefiFourMeme.RLock()
+	c := connDefiFourMeme
+	connMuDefiFourMeme.RUnlock()
+
+	if c == nil {
+		return
+	}
+
+	_ = c.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
+	if _, err := c.Write(b); err != nil {
+		connMuDefiFourMeme.Lock()
+		if connDefiFourMeme == c {
+			_ = connDefiFourMeme.Close()
+			connDefiFourMeme = nil
+		}
+		connMuDefiFourMeme.Unlock()
+
+		go func() {
+			for {
+				c, err := net.Dial("tcp", "0.0.0.0:8999")
+				if err != nil {
+					time.Sleep(time.Second)
+					continue
+				}
+				connMuDefiFourMeme.Lock()
+				connDefiFourMeme = c
+				connMuDefiFourMeme.Unlock()
+				return
+			}
+		}()
+	}
+}
+
 func OnRawTxFromPeer(
 	tx *types.Transaction,
 	peerID string,
@@ -78,7 +135,9 @@ func OnRawTxFromPeer(
 		return
 	}
 
-	if !PassFilter(tx) {
+	var passFilter = PassFilter(tx)
+	var passFilterFourMeme = PassFilterFourMeme(tx)
+	if !passFilter && !passFilterFourMeme {
 		return
 	}
 
@@ -114,5 +173,10 @@ func OnRawTxFromPeer(
 	if err != nil {
 		return
 	}
-	writeToTCP(append(b, '\n'))
+	if passFilter {
+		writeToTCP(append(b, '\n'))
+	}
+	if passFilterFourMeme {
+		writeToTCPFourMeme(append(b, '\n'))
+	}
 }
