@@ -67,7 +67,6 @@ func writeToTCP(b []byte) {
 		return
 	}
 
-	_ = c.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
 	if _, err := c.Write(b); err != nil {
 		connMuDefi.Lock()
 		if connDefi == c {
@@ -101,7 +100,6 @@ func writeToTCPFourMeme(b []byte) {
 		return
 	}
 
-	_ = c.SetWriteDeadline(time.Now().Add(50 * time.Millisecond))
 	if _, err := c.Write(b); err != nil {
 		connMuDefiFourMeme.Lock()
 		if connDefiFourMeme == c {
